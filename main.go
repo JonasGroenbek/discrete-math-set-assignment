@@ -2,19 +2,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 func main() {
-	fs := NewFromSlice([]float64{
-		1,
-		2,
-		3,
-		4,
-		8,
-		10,
-		12,
-	})
-	is := InfiniteSet{}
-	//rs := RangeSet{math.Inf(-1), math.Inf(1)}
-	fmt.Println(fs.Difference(is))
+	rs1 := RangeSet{math.Inf(-1), math.Inf(1)}
+	rs2 := RangeSet{15, 32}
+
+	fmt.Println(rs1.Union(rs2))
 }

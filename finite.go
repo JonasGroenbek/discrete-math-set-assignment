@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"math"
 	"reflect"
 	"sort"
@@ -15,8 +15,7 @@ type (
 	nothing struct{}
 )
 
-func (this FiniteSet) Union(s Set) UnionSet {
-	var us UnionSet
+func (this FiniteSet) Union(s Set) Result {
 	switch s.(type) {
 	case FiniteSet:
 		rs := s.(FiniteSet)
@@ -25,86 +24,101 @@ func (this FiniteSet) Union(s Set) UnionSet {
 				delete(this.set, k)
 			}
 		}
-		us = UnionSet{this, rs}
+		return Result{[]Set{
+			this,
+			s,
+		}}
 	case RangeSet:
 		rs := s.(RangeSet)
 		for k := range this.set {
-			if isBetween(k, rs.lowerBoundary, rs.upperBoundary) {
+			if isBetween(k, rs.lowBoundary, rs.highBoundary) {
 				delete(this.set, k)
 			}
 		}
-		us = UnionSet{this, rs}
-	case InfiniteSet:
-		is := s.(InfiniteSet)
+		return Result{[]Set{
+			this,
+			rs,
+		}}
+	default:
+		is := s.(infiniteSet)
 		for k := range this.set {
 			delete(this.set, k)
 		}
-		us = UnionSet{this, is}
+		return Result{[]Set{
+			this,
+			is,
+		}}
 	}
-	return us
 }
 
-func (this FiniteSet) Intersection(s Set) IntersectionSet {
-	var is IntersectionSet
+func (this FiniteSet) Intersection(s Set) Result {
 	switch s.(type) {
 	case FiniteSet:
-		intersection := New()
+		intersections := FiniteSet{}
 		rs := s.(FiniteSet)
 		if len(rs.set) >= len(this.set) {
 			for k := range this.set {
 				if _, ok := this.set[k]; !ok {
-					intersection.Add(k)
+					intersections.Add(k)
 				}
 			}
 		} else {
 			for k := range this.set {
 				if _, ok := rs.set[k]; !ok {
-					intersection.Add(k)
+					intersections.Add(k)
 				}
 			}
 		}
-		is = IntersectionSet{[]Set{intersection}}
+		return Result{[]Set{
+			intersections,
+		}}
 	case RangeSet:
 		rs := s.(RangeSet)
-		rsLength := int(rs.upperBoundary - rs.lowerBoundary)
+		rsLength := int(rs.highBoundary - rs.lowBoundary)
 		thisLength := len(this.set)
-		intersection := New()
+		intersections := FiniteSet{}
 		if thisLength >= rsLength {
-			for i := rs.lowerBoundary; i < rs.upperBoundary; i++ {
+			for i := rs.lowBoundary; i < rs.highBoundary; i++ {
 				if _, ok := this.set[i]; ok {
-					intersection.Add(i)
+					intersections.Add(i)
 				}
 			}
 		} else {
 			for k, _ := range this.set {
-				if isBetween(k, rs.lowerBoundary, rs.upperBoundary) {
-					intersection.Add(k)
+				if isBetween(k, rs.lowBoundary, rs.highBoundary) {
+					intersections.Add(k)
 				}
 			}
 		}
-		is = IntersectionSet{[]Set{intersection}}
-	case InfiniteSet:
-		is = IntersectionSet{[]Set{s}}
+		return Result{[]Set{
+			intersections,
+		}}
+	default:
+		return Result{[]Set{
+			s,
+		}}
 	}
-	return is
 }
 
-func (this FiniteSet) Difference(s Set) DifferenceSet {
-	var ds DifferenceSet
+func (this FiniteSet) Difference(s Set) Result {
 	switch s.(type) {
 	case FiniteSet:
-		differences := New()
+		diff := FiniteSet{}
 		fs := s.(FiniteSet)
 		for k, _ := range fs.set {
 			if _, ok := this.set[k]; ok {
-				differences.Add(k)
+				diff.Add(k)
 			}
 		}
 		for k, _ := range this.set {
 			if _, ok := fs.set[k]; ok {
-				differences.Add(k)
+				diff.Add(k)
 			}
 		}
+		return Result{
+			[]Set{
+				diff,
+			}}
 	case RangeSet:
 		rs := s.(RangeSet)
 		//creating range differences and specific differences
@@ -118,37 +132,37 @@ func (this FiniteSet) Difference(s Set) DifferenceSet {
 		}
 		sort.Float64s(keys)
 
-		var previousKey float64
+		var prevKey float64
 		for i, k := range keys {
-			if isBetweenExcluding(k, rs.lowerBoundary, rs.upperBoundary) {
+			if isBetweenExcluding(k, rs.lowBoundary, rs.highBoundary) {
 				//no previous key
 				if i == 0 {
-					rangeDifferences = append(rangeDifferences, RangeSet{rs.lowerBoundary, k - 1})
+					rangeDifferences = append(rangeDifferences, RangeSet{rs.lowBoundary, k - 1})
 				} else {
 					//check if the previous key is 1 apart
-					if previousKey != k-1 {
+					if prevKey != k-1 {
 						//check if there is a gap of 1 between previous key
-						if previousKey == k-2 {
+						if prevKey == k-2 {
 							finiteDifferences = append(finiteDifferences, k-1)
 							//append range since gap is larger than 2
 						} else {
-							rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+							rangeDifferences = append(rangeDifferences, RangeSet{prevKey + 1, k - 1})
 						}
 					}
 				}
 				//check if key does not equal boundaries, if that is the case then they both include and no difference
-			} else if k != rs.lowerBoundary && k != rs.upperBoundary {
+			} else if k != rs.lowBoundary && k != rs.highBoundary {
 				finiteDifferences = append(finiteDifferences, k)
 			}
-			previousKey = k
+			prevKey = k
 		}
 		sets := make([]Set, 0)
 		for _, rs := range rangeDifferences {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		ds = DifferenceSet{sets}
-	case InfiniteSet:
+		return Result{sets}
+	default:
 		rangeDifferences := make([]RangeSet, 0)
 		finiteDifferences := make([]float64, 0)
 
@@ -159,50 +173,48 @@ func (this FiniteSet) Difference(s Set) DifferenceSet {
 		}
 		sort.Float64s(keys)
 
-		var previousKey float64
+		var prevKey float64
 		for i, k := range keys {
 			//no previous key
 			if i == 0 && k != math.Inf(-1) {
 				rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
 			} else {
 				//check if the previous key is 1 apart
-				if previousKey != k-1 {
+				if prevKey != k-1 {
 					//check if there is a gap of 1 between previous key
-					if previousKey == k-2 {
+					if prevKey == k-2 {
 						finiteDifferences = append(finiteDifferences, k-1)
 						//append range since gap is larger than 2
 					} else {
-						rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+						rangeDifferences = append(rangeDifferences, RangeSet{prevKey + 1, k - 1})
 					}
 				}
 			}
 			//check if key does not equal boundaries, if that is the case then they both include and no difference
-			previousKey = k
+			prevKey = k
 		}
 		sets := make([]Set, 0)
 		for _, rs := range rangeDifferences {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		ds = DifferenceSet{sets}
+		return Result{sets}
 	}
-	return ds
 }
 
 //assuming the other set is the universal set
-func (this FiniteSet) Complement(s Set) ComplementSet {
-	var cs ComplementSet
+func (this FiniteSet) Complement(s Set) (Result, error) {
 	switch s.(type) {
 	case FiniteSet:
 		fs := s.(FiniteSet)
 		complements := make([]float64, 0)
 		if reflect.DeepEqual(Set(this), fs) {
-			cs = EmptyComplementSet()
+			return Result{}, nil
 		} else {
 			//checks if all keys exist in universal set
 			for k, _ := range fs.set {
 				if _, ok := this.set[k]; !ok {
-					panic("the universal set does not include element")
+					return Result{}, errors.New("the universal set does not include element")
 				}
 			}
 			for k, _ := range this.set {
@@ -213,7 +225,7 @@ func (this FiniteSet) Complement(s Set) ComplementSet {
 		}
 		sets := make([]Set, 0)
 		sets = append(sets, Set(NewFromSlice(complements)))
-		cs = ComplementSet{sets}
+		return Result{sets}, nil
 	case RangeSet:
 		rs := s.(RangeSet)
 		keys := make([]float64, 0)
@@ -221,40 +233,40 @@ func (this FiniteSet) Complement(s Set) ComplementSet {
 			keys = append(keys, k)
 		}
 		sort.Float64s(keys)
-		if keys[len(keys)-1] > rs.upperBoundary || keys[0] < rs.lowerBoundary {
-			panic("the universal set does not include element")
+		if keys[len(keys)-1] > rs.highBoundary || keys[0] < rs.lowBoundary {
+			return Result{}, errors.New("the universal set does not include element")
 		} else {
 			rangeDifferences := make([]RangeSet, 0)
 			finiteDifferences := make([]float64, 0)
 
-			var previousKey float64
+			var prevKey float64
 			for i, k := range keys {
 				//no previous key
 				if i == 0 && k != math.Inf(-1) {
 					rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
 				} else {
 					//check if the previous key is 1 apart
-					if previousKey != k-1 {
+					if prevKey != k-1 {
 						//check if there is a gap of 1 between previous key
-						if previousKey == k-2 {
+						if prevKey == k-2 {
 							finiteDifferences = append(finiteDifferences, k-1)
 							//append range since gap is larger than 2
 						} else {
-							rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+							rangeDifferences = append(rangeDifferences, RangeSet{prevKey + 1, k - 1})
 						}
 					}
 				}
 				//check if key does not equal boundaries, if that is the case then they both include and no difference
-				previousKey = k
+				prevKey = k
 			}
 			sets := make([]Set, 0)
 			for _, rs := range rangeDifferences {
 				sets = append(sets, Set(rs))
 			}
 			sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-			cs = ComplementSet{sets}
+			return Result{sets}, nil
 		}
-	case InfiniteSet:
+	default:
 		keys := make([]float64, 0)
 		for k := range this.set {
 			keys = append(keys, k)
@@ -264,38 +276,33 @@ func (this FiniteSet) Complement(s Set) ComplementSet {
 		rangeDifferences := make([]RangeSet, 0)
 		finiteDifferences := make([]float64, 0)
 
-		var previousKey float64
+		var prevKey float64
 		for i, k := range keys {
 			//no previous key
 			if i == 0 && k != math.Inf(-1) {
 				rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
 			} else {
 				//check if the previous key is 1 apart
-				if previousKey != k-1 {
+				if prevKey != k-1 {
 					//check if there is a gap of 1 between previous key
-					if previousKey == k-2 {
+					if prevKey == k-2 {
 						finiteDifferences = append(finiteDifferences, k-1)
 						//append range since gap is larger than 2
 					} else {
-						rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+						rangeDifferences = append(rangeDifferences, RangeSet{prevKey + 1, k - 1})
 					}
 				}
 			}
 			//check if key does not equal boundaries, if that is the case then they both include and no difference
-			previousKey = k
+			prevKey = k
 		}
 		sets := make([]Set, 0)
 		for _, rs := range rangeDifferences {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		cs = ComplementSet{sets}
+		return Result{sets}, nil
 	}
-	return cs
-}
-
-func New() FiniteSet {
-	return FiniteSet{set: make(map[float64]nothing)}
 }
 
 func NewFromSlice(values []float64) FiniteSet {
@@ -310,19 +317,18 @@ func (this FiniteSet) Add(k float64) {
 	this.set[k] = nothing{}
 }
 
-func (this FiniteSet) Remove(k float64) error {
-	_, exists := this.set[k]
-	if !exists {
-		return fmt.Errorf("Remove Error: Item doesn't exist in set")
+func (this FiniteSet) Remove(k float64) bool {
+	if _, ok := this.set[k]; ok {
+		return false
 	}
 	delete(this.set, k)
-	return nil
+	return true
 }
 
-func isBetween(target, lowerBoundary, upperBoundary float64) bool {
-	return target >= lowerBoundary && target <= upperBoundary
+func isBetween(target, lowBoundary, highBoundary float64) bool {
+	return target >= lowBoundary && target <= highBoundary
 }
 
-func isBetweenExcluding(target, lowerBoundary, upperBoundary float64) bool {
-	return target > lowerBoundary && target < upperBoundary
+func isBetweenExcluding(target, lowBoundary, highBoundary float64) bool {
+	return target > lowBoundary && target < highBoundary
 }

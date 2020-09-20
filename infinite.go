@@ -1,60 +1,68 @@
 package main
 
 import (
+	"errors"
 	"math"
 )
 
-type InfiniteSet struct{}
-
-func (this InfiniteSet) Union(s Set) UnionSet {
-	return UnionSet{InfiniteSet{}, New()}
+type infiniteSet struct {
+	min float64
+	max float64
 }
 
-func (this InfiniteSet) Intersection(s Set) IntersectionSet {
-	return IntersectionSet{
+func NewInfiniteSet() infiniteSet {
+	return infiniteSet{min: math.Inf(-1), max: math.Inf(1)}
+}
+
+func (this infiniteSet) Union(s Set) Result {
+	return Result{
+		[]Set{
+			NewInfiniteSet(),
+		},
+	}
+}
+
+func (this infiniteSet) Intersection(s Set) Result {
+	return Result{
 		[]Set{
 			s,
 		},
 	}
 }
 
-func (this InfiniteSet) Difference(s Set) DifferenceSet {
-	var ds DifferenceSet
+func (this infiniteSet) Difference(s Set) Result {
 	switch s.(type) {
 	case RangeSet:
 		rs := s.(RangeSet)
 		sets := make([]Set, 0)
-		if rs.lowerBoundary == math.Inf(-1) && rs.upperBoundary == math.Inf(1) {
-			ds = DifferenceSet{}
+		if rs.lowBoundary == math.Inf(-1) && rs.highBoundary == math.Inf(1) {
+			return Result{}
 		} else {
-			if rs.lowerBoundary != math.Inf(-1) {
-				sets = append(sets, RangeSet{math.Inf(-1), rs.lowerBoundary - 1})
+			if rs.lowBoundary != math.Inf(-1) {
+				sets = append(sets, RangeSet{math.Inf(-1), rs.lowBoundary - 1})
 			}
-			if rs.upperBoundary != math.Inf(1) {
-				sets = append(sets, RangeSet{rs.upperBoundary + 1, math.Inf(1)})
+			if rs.highBoundary != math.Inf(1) {
+				sets = append(sets, RangeSet{rs.highBoundary + 1, math.Inf(1)})
 			}
-			ds = DifferenceSet{sets}
+			return Result{sets}
 		}
 	default:
-		ds = DifferenceSet{}
+		return Result{}
 	}
-	return ds
 }
 
-func (this InfiniteSet) Complement(s Set) ComplementSet {
-	var cs ComplementSet
+func (this infiniteSet) Complement(s Set) (Result, error) {
 	switch s.(type) {
 	case FiniteSet:
-		panic("the universal set does not include element")
+		return Result{}, errors.New("the universal set does not include element")
 	case RangeSet:
 		rs := s.(RangeSet)
-		if rs.lowerBoundary == math.Inf(-1) && rs.upperBoundary == math.Inf(1) {
-			cs = ComplementSet{}
+		if rs.lowBoundary == math.Inf(-1) && rs.highBoundary == math.Inf(1) {
+			return Result{}, nil
 		} else {
-			panic("the universal set does not include element")
+			return Result{}, errors.New("the universal set does not include element")
 		}
-	case InfiniteSet:
-		cs = ComplementSet{}
+	default:
+		return Result{}, nil
 	}
-	return cs
 }

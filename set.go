@@ -2,8 +2,8 @@ package main
 
 //Set to be implemented by all sets
 type Set interface {
-	Union(s Set) UnionSet
-	Intersection(s Set) IntersectionSet
-	Difference(s Set) DifferenceSet
-	Complement(s Set) ComplementSet
+	Union(s Set) Result
+	Intersection(s Set) Result
+	Difference(s Set) Result
+	Complement(s Set) (Result, error)
 }
