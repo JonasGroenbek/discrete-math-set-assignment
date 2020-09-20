@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"sort"
 )
@@ -152,18 +153,81 @@ func (this FiniteSet) Difference(s Set) DifferenceSet {
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
 		ds = DifferenceSet{sets}
 	case InfiniteSet:
-		fmt.Printf("InfiniteSet")
+		rangeDifferences := make([]RangeSet, 0)
+		finiteDifferences := make([]float64, 0)
+
+		//sorting by finite keys
+		keys := make([]float64, 0)
+		for k := range this.set {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+
+		var previousKey float64
+		for i, k := range keys {
+			//no previous key
+			if i == 0 && k != math.Inf(-1) {
+				rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
+			} else {
+				//check if the previous key is 1 apart
+				if previousKey != k-1 {
+					//check if there is a gap of 1 between previous key
+					if previousKey == k-2 {
+						finiteDifferences = append(finiteDifferences, k-1)
+						//append range since gap is larger than 2
+					} else {
+						rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+					}
+				}
+			}
+			//check if key does not equal boundaries, if that is the case then they both include and no difference
+			previousKey = k
+		}
+		sets := make([]Set, 0)
+		for _, rs := range rangeDifferences {
+			sets = append(sets, Set(rs))
+		}
+		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
+		ds = DifferenceSet{sets}
 	}
 	return ds
 }
 
+//assuming the other set is the universal set
 func (this FiniteSet) Complement(s Set) ComplementSet {
 	var cs ComplementSet
 	switch s.(type) {
 	case FiniteSet:
-		fmt.Printf("FiniteSet")
+		fs := s.(FiniteSet)
+		complements := make([]float64, 0)
+		if reflect.DeepEqual(Set(this), fs) {
+			cs = EmptyComplementSet()
+		} else {
+			//checks if all keys exist in universal set
+			for k, _ := range fs.set {
+				if _, ok := this.set[k]; !ok {
+					panic("the universal set does not include element")
+				}
+			}
+			for k, _ := range this.set {
+				if _, ok := this.set[k]; !ok {
+					complements = append(complements, k)
+				}
+			}
+		}
+		sets := make([]Set, 0)
+		sets = append(sets, Set(NewFromSlice(complements)))
+		cs = ComplementSet{sets}
 	case RangeSet:
-		fmt.Printf("RangeSet")
+		rs := s.(RangeSet)
+		keys := make([]float64, 0)
+		for k := range this.set {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+		if keys[len(keys)-1] > rs.upperBoundary || keys[0] < rs.lowerBoundary {
+			panic("the universal set does not include element")
+		}
 	case InfiniteSet:
 		fmt.Printf("InfiniteSet")
 	}

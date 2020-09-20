@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 )
 
 func main() {
@@ -13,7 +12,9 @@ func main() {
 		4,
 		8,
 		10,
+		12,
 	})
-	rs := RangeSet{math.Inf(-1), math.Inf(1)}
-	fmt.Println(fs.Difference(rs))
+	is := InfiniteSet{}
+	//rs := RangeSet{math.Inf(-1), math.Inf(1)}
+	fmt.Println(fs.Difference(is))
 }
