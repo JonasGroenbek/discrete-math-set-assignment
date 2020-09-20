@@ -15,21 +15,17 @@ type (
 	nothing struct{}
 )
 
-func (this FiniteSet) Member(f float64) bool {
-	return false
-}
-
 func (this FiniteSet) Union(s Set) UnionSet {
 	var us UnionSet
 	switch s.(type) {
 	case FiniteSet:
-		this2 := s.(FiniteSet)
-		for k := range this2.set {
+		rs := s.(FiniteSet)
+		for k := range rs.set {
 			if _, ok := this.set[k]; ok {
 				delete(this.set, k)
 			}
 		}
-		us = UnionSet{this, this2}
+		us = UnionSet{this, rs}
 	case RangeSet:
 		rs := s.(RangeSet)
 		for k := range this.set {
@@ -53,8 +49,8 @@ func (this FiniteSet) Intersection(s Set) IntersectionSet {
 	switch s.(type) {
 	case FiniteSet:
 		intersection := New()
-		this2 := s.(FiniteSet)
-		if len(this2.set) >= len(this.set) {
+		rs := s.(FiniteSet)
+		if len(rs.set) >= len(this.set) {
 			for k := range this.set {
 				if _, ok := this.set[k]; !ok {
 					intersection.Add(k)
@@ -62,7 +58,7 @@ func (this FiniteSet) Intersection(s Set) IntersectionSet {
 			}
 		} else {
 			for k := range this.set {
-				if _, ok := this2.set[k]; !ok {
+				if _, ok := rs.set[k]; !ok {
 					intersection.Add(k)
 				}
 			}
@@ -227,26 +223,75 @@ func (this FiniteSet) Complement(s Set) ComplementSet {
 		sort.Float64s(keys)
 		if keys[len(keys)-1] > rs.upperBoundary || keys[0] < rs.lowerBoundary {
 			panic("the universal set does not include element")
+		} else {
+			rangeDifferences := make([]RangeSet, 0)
+			finiteDifferences := make([]float64, 0)
+
+			var previousKey float64
+			for i, k := range keys {
+				//no previous key
+				if i == 0 && k != math.Inf(-1) {
+					rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
+				} else {
+					//check if the previous key is 1 apart
+					if previousKey != k-1 {
+						//check if there is a gap of 1 between previous key
+						if previousKey == k-2 {
+							finiteDifferences = append(finiteDifferences, k-1)
+							//append range since gap is larger than 2
+						} else {
+							rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+						}
+					}
+				}
+				//check if key does not equal boundaries, if that is the case then they both include and no difference
+				previousKey = k
+			}
+			sets := make([]Set, 0)
+			for _, rs := range rangeDifferences {
+				sets = append(sets, Set(rs))
+			}
+			sets = append(sets, Set(NewFromSlice(finiteDifferences)))
+			cs = ComplementSet{sets}
 		}
 	case InfiniteSet:
-		fmt.Printf("InfiniteSet")
+		keys := make([]float64, 0)
+		for k := range this.set {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+
+		rangeDifferences := make([]RangeSet, 0)
+		finiteDifferences := make([]float64, 0)
+
+		var previousKey float64
+		for i, k := range keys {
+			//no previous key
+			if i == 0 && k != math.Inf(-1) {
+				rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
+			} else {
+				//check if the previous key is 1 apart
+				if previousKey != k-1 {
+					//check if there is a gap of 1 between previous key
+					if previousKey == k-2 {
+						finiteDifferences = append(finiteDifferences, k-1)
+						//append range since gap is larger than 2
+					} else {
+						rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+					}
+				}
+			}
+			//check if key does not equal boundaries, if that is the case then they both include and no difference
+			previousKey = k
+		}
+		sets := make([]Set, 0)
+		for _, rs := range rangeDifferences {
+			sets = append(sets, Set(rs))
+		}
+		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
+		cs = ComplementSet{sets}
 	}
 	return cs
-}
-
-func (this FiniteSet) CompareTo(s Set) int {
-	var comparison int
-	switch s.(type) {
-	case FiniteSet:
-		if reflect.DeepEqual(this, s) {
-			return 0
-		}
-	case RangeSet:
-		fmt.Printf("RangeSet")
-	case InfiniteSet:
-		fmt.Printf("InfiniteSet")
-	}
-	return comparison
 }
 
 func New() FiniteSet {
@@ -272,10 +317,6 @@ func (this FiniteSet) Remove(k float64) error {
 	}
 	delete(this.set, k)
 	return nil
-}
-
-func (this FiniteSet) Size() int {
-	return len(this.set)
 }
 
 func isBetween(target, lowerBoundary, upperBoundary float64) bool {
