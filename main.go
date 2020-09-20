@@ -1,13 +1,10 @@
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
-	mySet := New()
-	mySet.Add(1)
-	mySet.Add(2)
-	mySet.Add(5)
-	fmt.Println(mySet)
+	fs := New()
+	fs.Add(1)
+	fs.Add(3)
+	fs.Add(2)
+	s := Set(fs)
+	s.CompareTo(Set(InfiniteSet{}))
 }

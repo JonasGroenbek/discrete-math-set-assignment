@@ -5,23 +5,13 @@ import (
 	"reflect"
 )
 
-type RangeSet struct {
-	lowerBoundary float64
-	upperBoundary float64
+type InfiniteSet struct{}
+
+func (is InfiniteSet) Member(f float64) bool {
+	return true
 }
 
-func (rs RangeSet) New(l, u float64) RangeSet {
-	return RangeSet{l, u}
-}
-
-func (rs RangeSet) Member(f float64) bool {
-	if f >= rs.lowerBoundary && f <= rs.upperBoundary {
-		return true
-	}
-	return false
-}
-
-func (rs RangeSet) Union(s Set) UnionSet {
+func (is InfiniteSet) Union(s Set) UnionSet {
 	var us UnionSet
 	switch s.(type) {
 	case FiniteSet:
@@ -34,8 +24,8 @@ func (rs RangeSet) Union(s Set) UnionSet {
 	return us
 }
 
-func (rs RangeSet) Intersection(s Set) IntersectionSet {
-	var is IntersectionSet
+func (is InfiniteSet) Intersection(s Set) IntersectionSet {
+	var iss IntersectionSet
 	switch s.(type) {
 	case FiniteSet:
 		fmt.Printf("FiniteSet")
@@ -44,10 +34,10 @@ func (rs RangeSet) Intersection(s Set) IntersectionSet {
 	case InfiniteSet:
 		fmt.Printf("InfiniteSet")
 	}
-	return is
+	return iss
 }
 
-func (rs RangeSet) Difference(s Set) DifferenceSet {
+func (is InfiniteSet) Difference(s Set) DifferenceSet {
 	var ds DifferenceSet
 	switch s.(type) {
 	case FiniteSet:
@@ -60,7 +50,7 @@ func (rs RangeSet) Difference(s Set) DifferenceSet {
 	return ds
 }
 
-func (rs RangeSet) Complement(s Set) ComplementSet {
+func (is InfiniteSet) Complement(s Set) ComplementSet {
 	var cs ComplementSet
 	switch s.(type) {
 	case FiniteSet:
@@ -73,8 +63,8 @@ func (rs RangeSet) Complement(s Set) ComplementSet {
 	return cs
 }
 
-func (rs RangeSet) CompareTo(s Set) int {
-	if reflect.DeepEqual(rs, s) {
+func (is InfiniteSet) CompareTo(s Set) int {
+	if reflect.DeepEqual(is, s) {
 		return 0
 	}
 	return 1
