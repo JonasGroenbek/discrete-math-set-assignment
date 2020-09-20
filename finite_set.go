@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 //FiniteSet something
@@ -108,7 +109,48 @@ func (this FiniteSet) Difference(s Set) DifferenceSet {
 			}
 		}
 	case RangeSet:
-		fmt.Printf("RangeSet")
+		rs := s.(RangeSet)
+		//creating range differences and specific differences
+		rangeDifferences := make([]RangeSet, 0)
+		finiteDifferences := make([]float64, 0)
+
+		//sorting by finite keys
+		keys := make([]float64, 0)
+		for k := range this.set {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+
+		var previousKey float64
+		for i, k := range keys {
+			if isBetweenExcluding(k, rs.lowerBoundary, rs.upperBoundary) {
+				//no previous key
+				if i == 0 {
+					rangeDifferences = append(rangeDifferences, RangeSet{rs.lowerBoundary, k - 1})
+				} else {
+					//check if the previous key is 1 apart
+					if previousKey != k-1 {
+						//check if there is a gap of 1 between previous key
+						if previousKey == k-2 {
+							finiteDifferences = append(finiteDifferences, k-1)
+							//append range since gap is larger than 2
+						} else {
+							rangeDifferences = append(rangeDifferences, RangeSet{previousKey + 1, k - 1})
+						}
+					}
+				}
+				//check if key does not equal boundaries, if that is the case then they both include and no difference
+			} else if k != rs.lowerBoundary && k != rs.upperBoundary {
+				finiteDifferences = append(finiteDifferences, k)
+			}
+			previousKey = k
+		}
+		sets := make([]Set, 0)
+		for _, rs := range rangeDifferences {
+			sets = append(sets, Set(rs))
+		}
+		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
+		ds = DifferenceSet{sets}
 	case InfiniteSet:
 		fmt.Printf("InfiniteSet")
 	}
@@ -147,6 +189,14 @@ func New() FiniteSet {
 	return FiniteSet{set: make(map[float64]nothing)}
 }
 
+func NewFromSlice(values []float64) FiniteSet {
+	set := make(map[float64]nothing)
+	for _, k := range values {
+		set[k] = nothing{}
+	}
+	return FiniteSet{set}
+}
+
 func (this FiniteSet) Add(k float64) {
 	this.set[k] = nothing{}
 }
@@ -166,4 +216,8 @@ func (this FiniteSet) Size() int {
 
 func isBetween(target, lowerBoundary, upperBoundary float64) bool {
 	return target >= lowerBoundary && target <= upperBoundary
+}
+
+func isBetweenExcluding(target, lowerBoundary, upperBoundary float64) bool {
+	return target > lowerBoundary && target < upperBoundary
 }
