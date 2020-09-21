@@ -83,16 +83,15 @@ func TestDifferenceRangeSet(t *testing.T) {
 	high := float64(123)
 	regular := RangeSet{low, high}
 	result := mInf.Difference(regular)
-	if result.Contains(math.Inf(-1)) {
+	if !result.Contains(math.Inf(-1)) {
 		fail("Result does not include -infinity on difference", t)
 	}
 	result = pInf.Difference(regular)
-	t.Log(result)
 	if !result.Contains(low) || !result.Contains(math.Inf(1)) {
 		fail("failed on difference on regular and positive infinite rangesets", t)
 	}
 	result = inf.Difference(regular)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(low) || !result.Contains(high) || !result.Contains(math.Inf(1)) {
+	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
 		fail("failed on difference on regular and infinite rangesets", t)
 	}
 }

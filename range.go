@@ -191,7 +191,7 @@ func (this RangeSet) Difference(s Set) Result {
 			//this contains
 		} else if this.lowBoundary <= rs.lowBoundary && this.highBoundary >= rs.highBoundary {
 			return Result{[]Set{
-				RangeSet{rs.lowBoundary, this.lowBoundary},
+				RangeSet{this.lowBoundary, rs.lowBoundary},
 				RangeSet{rs.highBoundary, this.highBoundary},
 			}}
 			//they cross
@@ -221,12 +221,14 @@ func (this RangeSet) Difference(s Set) Result {
 				//this lowest
 			} else if this.lowBoundary < rs.lowBoundary {
 				return Result{[]Set{
-					RangeSet{rs.lowBoundary, this.highBoundary},
+					RangeSet{this.lowBoundary, rs.lowBoundary},
+					RangeSet{this.highBoundary, rs.highBoundary},
 				}}
 				//rs lowest
 			} else if rs.lowBoundary < this.lowBoundary {
 				return Result{[]Set{
-					RangeSet{this.lowBoundary, rs.highBoundary},
+					RangeSet{rs.lowBoundary, this.lowBoundary},
+					RangeSet{rs.highBoundary, this.highBoundary},
 				}}
 			} else {
 				return Result{}
