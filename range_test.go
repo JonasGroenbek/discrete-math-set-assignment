@@ -17,16 +17,16 @@ func TestRangeSetUnionRangeSet(t *testing.T) {
 	low := float64(-15)
 	high := float64(123)
 	regular := RangeSet{low, high}
-	result := mInf.Union(regular)
-	if !result.Contains(math.Inf(-1)) {
-		fail("Result does not include -infinity on union", t)
+	cs := mInf.Union(regular)
+	if !cs.Contains(math.Inf(-1)) {
+		fail("cs does not include -infinity on union", t)
 	}
-	result = pInf.Union(regular)
-	if !result.Contains(low) || !result.Contains(high) || !result.Contains(math.Inf(1)) {
+	cs = pInf.Union(regular)
+	if !cs.Contains(low) || !cs.Contains(high) || !cs.Contains(math.Inf(1)) {
 		fail("failed on union on regular and positive infinite rangesets", t)
 	}
-	result = inf.Union(regular)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(low) || !result.Contains(high) || !result.Contains(math.Inf(1)) {
+	cs = inf.Union(regular)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(low) || !cs.Contains(high) || !cs.Contains(math.Inf(1)) {
 		fail("failed on union on regular and infinite rangesets", t)
 	}
 }
@@ -34,16 +34,16 @@ func TestRangeSetUnionRangeSet(t *testing.T) {
 func TestRangeSetUnionInfiniteSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	is := NewInfiniteSet()
-	result := mInf.Union(is)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
+	cs := mInf.Union(is)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(1)) {
 		fail("failed on union with minus infinity rangeset and  InfiniteSet", t)
 	}
-	result = pInf.Union(is)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
+	cs = pInf.Union(is)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(1)) {
 		fail("failed on union on positive infinity rangeset and infinite set", t)
 	}
-	result = inf.Union(is)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
+	cs = inf.Union(is)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(1)) {
 		fail("failed on union on regular and infinite rangesets", t)
 	}
 }
@@ -55,18 +55,18 @@ func TestRangeSetUnionFiniteSet(t *testing.T) {
 	}
 	fs := NewFromSlice(vals)
 
-	result := mInf.Union(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(vals[3]) || !result.Contains(vals[0]) {
+	cs := mInf.Union(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(vals[3]) || !cs.Contains(vals[0]) {
 		fail("failed on union with minus infinity rangeset and FiniteSet", t)
 	}
 
-	result = pInf.Union(fs)
-	if !result.Contains(vals[3]) || !result.Contains(vals[1]) || !result.Contains(math.Inf(0)) {
+	cs = pInf.Union(fs)
+	if !cs.Contains(vals[3]) || !cs.Contains(vals[1]) || !cs.Contains(math.Inf(0)) {
 		fail("failed on union on positive infinity rangeset and FiniteSet", t)
 	}
 
-	result = inf.Union(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) || !result.Contains(vals[3]) || !result.Contains(vals[1]) {
+	cs = inf.Union(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(1)) || !cs.Contains(vals[3]) || !cs.Contains(vals[1]) {
 		fail("failed on union on regular and FiniteSet", t)
 	}
 
@@ -77,16 +77,16 @@ func TestRangeSetDifferenceRangeSet(t *testing.T) {
 	low := float64(-1325)
 	high := float64(123)
 	regular := RangeSet{low, high}
-	result := mInf.Difference(regular)
-	if !result.Contains(math.Inf(-1)) {
-		fail("Result does not include -infinity on difference", t)
+	cs := mInf.Difference(regular)
+	if !cs.Contains(math.Inf(-1)) {
+		fail("cs does not include -infinity on difference", t)
 	}
-	result = pInf.Difference(regular)
-	if !result.Contains(low) || !result.Contains(math.Inf(1)) {
+	cs = pInf.Difference(regular)
+	if !cs.Contains(low) || !cs.Contains(math.Inf(1)) {
 		fail("failed on difference on regular and positive infinite rangesets", t)
 	}
-	result = inf.Difference(regular)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
+	cs = inf.Difference(regular)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(1)) {
 		fail("failed on difference on regular and infinite rangesets", t)
 	}
 }
@@ -98,19 +98,19 @@ func TestRangeSetDifferenceFiniteSet(t *testing.T) {
 		500000,
 	})
 
-	result := mInf.Difference(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(500000) {
-		fail("Result does not contain difference elements when diff between minus inf RangeSet and FiniteSet", t)
+	cs := mInf.Difference(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(500000) {
+		fail("cs does not contain difference elements when diff between minus inf RangeSet and FiniteSet", t)
 	}
 
-	result = pInf.Difference(fs)
-	t.Log(result)
-	if result.Contains(math.Inf(-500000)) || !result.Contains(math.Inf(1)) {
-		fail("Result does not contain difference elements when diff between plus inf RangeSet and FiniteSet", t)
+	cs = pInf.Difference(fs)
+	t.Log(cs)
+	if cs.Contains(math.Inf(-500000)) || !cs.Contains(math.Inf(1)) {
+		fail("cs does not contain difference elements when diff between plus inf RangeSet and FiniteSet", t)
 	}
-	result = inf.Difference(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
-		fail("Result does notcontain difference elements when diff between inf RangeSet and FiniteSet", t)
+	cs = inf.Difference(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(1)) {
+		fail("cs does notcontain difference elements when diff between inf RangeSet and FiniteSet", t)
 	}
 }
 
@@ -119,16 +119,16 @@ func TestRangeSetIntersectionRangeSet(t *testing.T) {
 	low := float64(-1325)
 	high := float64(123)
 	regular := RangeSet{low, high}
-	result := mInf.Intersection(regular)
-	if result.Contains(math.Inf(-1)) {
-		fail("Result does not exclude -infinity on difference", t)
+	cs := mInf.Intersection(regular)
+	if cs.Contains(math.Inf(-1)) {
+		fail("cs does not exclude -infinity on difference", t)
 	}
-	result = pInf.Intersection(regular)
-	if !result.Contains(high) || result.Contains(math.Inf(1)) {
+	cs = pInf.Intersection(regular)
+	if !cs.Contains(high) || cs.Contains(math.Inf(1)) {
 		fail("failed on intersection on regular and positive infinite rangesets", t)
 	}
-	result = inf.Intersection(regular)
-	if result.Contains(math.Inf(-1)) || result.Contains(math.Inf(1)) {
+	cs = inf.Intersection(regular)
+	if cs.Contains(math.Inf(-1)) || cs.Contains(math.Inf(1)) {
 		fail("failed on intersection on regular and infinite rangesets", t)
 	}
 }
@@ -141,17 +141,17 @@ func TestRangeSetIntersectionFiniteSet(t *testing.T) {
 		500000,
 		math.Inf(1),
 	})
-	result := mInf.Intersection(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(-500000)) || !result.Contains(500000) || !result.Contains(math.Inf(1)) {
-		fail("Result does not exclude FiniteSet elements", t)
+	cs := mInf.Intersection(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(-500000)) || !cs.Contains(500000) || !cs.Contains(math.Inf(1)) {
+		fail("cs does not exclude FiniteSet elements", t)
 	}
-	result = pInf.Intersection(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(-500000)) || !result.Contains(500000) || !result.Contains(math.Inf(1)) {
-		fail("Result does not exclude FiniteSet elements when intersecting with ", t)
+	cs = pInf.Intersection(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(-500000)) || !cs.Contains(500000) || !cs.Contains(math.Inf(1)) {
+		fail("cs does not exclude FiniteSet elements when intersecting with ", t)
 	}
-	result = inf.Intersection(fs)
-	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(-500000)) || !result.Contains(500000) || !result.Contains(math.Inf(1)) {
-		fail("Result does not exclude FiniteSet elements", t)
+	cs = inf.Intersection(fs)
+	if !cs.Contains(math.Inf(-1)) || !cs.Contains(math.Inf(-500000)) || !cs.Contains(500000) || !cs.Contains(math.Inf(1)) {
+		fail("cs does not exclude FiniteSet elements", t)
 	}
 }
 
@@ -160,20 +160,20 @@ func TestRangeSetComplementRangeSet(t *testing.T) {
 	low := float64(100)
 	high := float64(1000)
 	regular := RangeSet{low, high}
-	result, err := mInf.Complement(inf)
-	if result.Contains(math.Inf(-1)) || err != nil {
+	cs, err := mInf.Complement(inf)
+	if cs.Contains(math.Inf(-1)) || err != nil {
 		fail("Complement include element from original set", t)
 	}
-	result, err = pInf.Complement(inf)
-	if result.Contains(0) || result.Contains(math.Inf(1)) || err != nil {
+	cs, err = pInf.Complement(inf)
+	if cs.Contains(0) || cs.Contains(math.Inf(1)) || err != nil {
 		fail("Complement include its original elements", t)
 	}
-	result, err = regular.Complement(inf)
-	if result.Contains(500) || !result.Contains(1001) || !result.Contains(99) || err != nil {
+	cs, err = regular.Complement(inf)
+	if cs.Contains(500) || !cs.Contains(1001) || !cs.Contains(99) || err != nil {
 		fail("failed on complement on regular and infinite rangesets", t)
 	}
 
-	result, err = mInf.Complement(regular)
+	cs, err = mInf.Complement(regular)
 	if err == nil {
 		fail("expected error on wrong universal set", t)
 	}
@@ -187,9 +187,9 @@ func TestRangeSetComplementFiniteSet(t *testing.T) {
 		1, 2, 3, 4, 5, 6, 7, 8, 9,
 	})
 
-	result, err := rs.Complement(fs)
-	t.Log(result)
-	if !result.Contains(1) || !result.Contains(5) || !result.Contains(9) {
+	cs, err := rs.Complement(fs)
+	t.Log(cs)
+	if !cs.Contains(1) || !cs.Contains(5) || !cs.Contains(9) {
 		fail("Does not include the complement elements when RangeSet complements Finite universal set", t)
 	}
 	_, err = rsError.Complement(fs)

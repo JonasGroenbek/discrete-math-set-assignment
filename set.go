@@ -1,8 +1,8 @@
 package assignment3
 
 type Set interface {
-	Union(s Set) Result
-	Intersection(s Set) Result
-	Difference(s Set) Result
-	Complement(s Set) (Result, error)
+	Union(s Set) CompositeSet
+	Intersection(s Set) CompositeSet
+	Difference(s Set) CompositeSet
+	Complement(s Set) (CompositeSet, error)
 }

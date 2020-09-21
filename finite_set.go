@@ -14,7 +14,7 @@ type (
 	nothing struct{}
 )
 
-func (this FiniteSet) Union(s Set) Result {
+func (this FiniteSet) Union(s Set) CompositeSet {
 	switch s.(type) {
 	case FiniteSet:
 		rs := s.(FiniteSet)
@@ -23,7 +23,7 @@ func (this FiniteSet) Union(s Set) Result {
 				delete(this.set, k)
 			}
 		}
-		return Result{[]Set{
+		return CompositeSet{[]Set{
 			this,
 			s,
 		}}
@@ -41,7 +41,7 @@ func (this FiniteSet) Union(s Set) Result {
 			}
 		}
 
-		return Result{[]Set{
+		return CompositeSet{[]Set{
 			rs,
 			singleDiffs,
 		}}
@@ -50,14 +50,14 @@ func (this FiniteSet) Union(s Set) Result {
 		for k := range this.set {
 			delete(this.set, k)
 		}
-		return Result{[]Set{
+		return CompositeSet{[]Set{
 			this,
 			is,
 		}}
 	}
 }
 
-func (this FiniteSet) Intersection(s Set) Result {
+func (this FiniteSet) Intersection(s Set) CompositeSet {
 	switch s.(type) {
 	case FiniteSet:
 		intersections := FiniteSet{}
@@ -75,7 +75,7 @@ func (this FiniteSet) Intersection(s Set) Result {
 				}
 			}
 		}
-		return Result{[]Set{
+		return CompositeSet{[]Set{
 			intersections,
 		}}
 	case RangeSet:
@@ -96,17 +96,17 @@ func (this FiniteSet) Intersection(s Set) Result {
 				}
 			}
 		}
-		return Result{[]Set{
+		return CompositeSet{[]Set{
 			intersections,
 		}}
 	default:
-		return Result{[]Set{
+		return CompositeSet{[]Set{
 			s,
 		}}
 	}
 }
 
-func (this FiniteSet) Difference(s Set) Result {
+func (this FiniteSet) Difference(s Set) CompositeSet {
 	switch s.(type) {
 	case FiniteSet:
 		diff := FiniteSet{}
@@ -121,7 +121,7 @@ func (this FiniteSet) Difference(s Set) Result {
 				diff.Add(k)
 			}
 		}
-		return Result{
+		return CompositeSet{
 			[]Set{
 				diff,
 			}}
@@ -167,7 +167,7 @@ func (this FiniteSet) Difference(s Set) Result {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		return Result{sets}
+		return CompositeSet{sets}
 	default:
 		rangeDifferences := make([]RangeSet, 0)
 		finiteDifferences := make([]float64, 0)
@@ -204,23 +204,23 @@ func (this FiniteSet) Difference(s Set) Result {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		return Result{sets}
+		return CompositeSet{sets}
 	}
 }
 
 //assuming the other set is the universal set
-func (this FiniteSet) Complement(s Set) (Result, error) {
+func (this FiniteSet) Complement(s Set) (CompositeSet, error) {
 	switch s.(type) {
 	case FiniteSet:
 		fs := s.(FiniteSet)
 		complements := make([]float64, 0)
 		if reflect.DeepEqual(Set(this), fs) {
-			return Result{}, nil
+			return CompositeSet{}, nil
 		} else {
 			//checks if all keys exist in universal set
 			for k, _ := range fs.set {
 				if _, ok := this.set[k]; !ok {
-					return Result{}, errors.New("the universal set does not include element")
+					return CompositeSet{}, errors.New("the universal set does not include element")
 				}
 			}
 			for k, _ := range this.set {
@@ -231,7 +231,7 @@ func (this FiniteSet) Complement(s Set) (Result, error) {
 		}
 		sets := make([]Set, 0)
 		sets = append(sets, Set(NewFromSlice(complements)))
-		return Result{sets}, nil
+		return CompositeSet{sets}, nil
 	case RangeSet:
 		rs := s.(RangeSet)
 		keys := make([]float64, 0)
@@ -240,7 +240,7 @@ func (this FiniteSet) Complement(s Set) (Result, error) {
 		}
 		sort.Float64s(keys)
 		if keys[len(keys)-1] > rs.highBoundary || keys[0] < rs.lowBoundary {
-			return Result{}, errors.New("the universal set does not include element")
+			return CompositeSet{}, errors.New("the universal set does not include element")
 		} else {
 			rangeDifferences := make([]RangeSet, 0)
 			finiteDifferences := make([]float64, 0)
@@ -270,7 +270,7 @@ func (this FiniteSet) Complement(s Set) (Result, error) {
 				sets = append(sets, Set(rs))
 			}
 			sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-			return Result{sets}, nil
+			return CompositeSet{sets}, nil
 		}
 	default:
 		keys := make([]float64, 0)
@@ -307,7 +307,7 @@ func (this FiniteSet) Complement(s Set) (Result, error) {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		return Result{sets}, nil
+		return CompositeSet{sets}, nil
 	}
 }
 

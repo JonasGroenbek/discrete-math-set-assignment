@@ -14,29 +14,29 @@ func NewInfiniteSet() infiniteSet {
 	return infiniteSet{min: math.Inf(-1), max: math.Inf(1)}
 }
 
-func (this infiniteSet) Union(s Set) Result {
-	return Result{
+func (this infiniteSet) Union(s Set) CompositeSet {
+	return CompositeSet{
 		[]Set{
 			NewInfiniteSet(),
 		},
 	}
 }
 
-func (this infiniteSet) Intersection(s Set) Result {
-	return Result{
+func (this infiniteSet) Intersection(s Set) CompositeSet {
+	return CompositeSet{
 		[]Set{
 			s,
 		},
 	}
 }
 
-func (this infiniteSet) Difference(s Set) Result {
+func (this infiniteSet) Difference(s Set) CompositeSet {
 	switch s.(type) {
 	case RangeSet:
 		rs := s.(RangeSet)
 		sets := make([]Set, 0)
 		if rs.lowBoundary == math.Inf(-1) && rs.highBoundary == math.Inf(1) {
-			return Result{}
+			return CompositeSet{}
 		} else {
 			if rs.lowBoundary != math.Inf(-1) {
 				sets = append(sets, RangeSet{math.Inf(-1), rs.lowBoundary - 1})
@@ -44,25 +44,25 @@ func (this infiniteSet) Difference(s Set) Result {
 			if rs.highBoundary != math.Inf(1) {
 				sets = append(sets, RangeSet{rs.highBoundary + 1, math.Inf(1)})
 			}
-			return Result{sets}
+			return CompositeSet{sets}
 		}
 	default:
-		return Result{}
+		return CompositeSet{}
 	}
 }
 
-func (this infiniteSet) Complement(s Set) (Result, error) {
+func (this infiniteSet) Complement(s Set) (CompositeSet, error) {
 	switch s.(type) {
 	case FiniteSet:
-		return Result{}, errors.New("the universal set does not include element")
+		return CompositeSet{}, errors.New("the universal set does not include element")
 	case RangeSet:
 		rs := s.(RangeSet)
 		if rs.lowBoundary == math.Inf(-1) && rs.highBoundary == math.Inf(1) {
-			return Result{}, nil
+			return CompositeSet{}, nil
 		} else {
-			return Result{}, errors.New("the universal set does not include element")
+			return CompositeSet{}, errors.New("the universal set does not include element")
 		}
 	default:
-		return Result{}, nil
+		return CompositeSet{}, nil
 	}
 }

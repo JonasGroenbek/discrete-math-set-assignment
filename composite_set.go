@@ -1,10 +1,10 @@
 package assignment3
 
-type Result struct {
+type CompositeSet struct {
 	sets []Set
 }
 
-func (this Result) Contains(target float64) bool {
+func (this CompositeSet) Contains(target float64) bool {
 	for _, set := range this.sets {
 		switch set.(type) {
 		case infiniteSet:
@@ -26,7 +26,7 @@ func (this Result) Contains(target float64) bool {
 	return false
 }
 
-func (this Result) ContainsMultiple(targets []float64) bool {
+func (this CompositeSet) ContainsMultiple(targets []float64) bool {
 	for _, t := range targets {
 		if !this.Contains(t) {
 			return false
