@@ -34,30 +34,16 @@ func (this FiniteSet) Union(s Set) Result {
 		for k := range this.set {
 			keys = append(keys, k)
 		}
-		sort.Float64s(keys)
+		singleDiffs := FiniteSet{make(map[float64]nothing)}
+		for _, k := range keys {
+			if !isBetweenExcluding(k, rs.lowBoundary, rs.highBoundary) {
+				singleDiffs.Add(k)
+			}
+		}
 
-		var high float64
-		var low float64
-		for i, k := range keys {
-			if i == 0 {
-				high = k
-				low = k
-			}
-			if k > high {
-				high = k
-			}
-			if k < low {
-				low = k
-			}
-		}
-		if rs.highBoundary > high {
-			high = rs.highBoundary
-		}
-		if rs.lowBoundary < low {
-			low = rs.lowBoundary
-		}
 		return Result{[]Set{
-			RangeSet{low, high},
+			rs,
+			singleDiffs,
 		}}
 	default:
 		is := s.(infiniteSet)

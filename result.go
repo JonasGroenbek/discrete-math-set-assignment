@@ -25,3 +25,14 @@ func (this Result) Contains(target float64) bool {
 	}
 	return false
 }
+
+func (this Result) ContainsMultiple(targets []float64) bool {
+	for _, t := range targets {
+		if !this.Contains(t) {
+			return false
+		}
+		return true
+	}
+	//slice empty
+	return true
+}

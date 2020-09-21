@@ -280,38 +280,18 @@ func (this RangeSet) Complement(s Set) (Result, error) {
 			keys = append(keys, k)
 		}
 		sort.Float64s(keys)
-		if keys[len(keys)-1] > this.highBoundary || keys[0] < this.lowBoundary {
+		if keys[len(keys)-1] < this.highBoundary || keys[0] > this.lowBoundary {
 			return Result{}, errors.New("the universal set does not include element")
 		} else {
-			rangeDifferences := make([]RangeSet, 0)
-			finiteDifferences := make([]float64, 0)
-
-			var prevKey float64
-			for i, k := range keys {
-				//no previous key
-				if i == 0 && k != math.Inf(-1) {
-					rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
-				} else {
-					//check if the previous key is 1 apart
-					if prevKey != k-1 {
-						//check if there is a gap of 1 between previous key
-						if prevKey == k-2 {
-							finiteDifferences = append(finiteDifferences, k-1)
-							//append range since gap is larger than 2
-						} else {
-							rangeDifferences = append(rangeDifferences, RangeSet{prevKey + 1, k - 1})
-						}
-					}
+			singleDiffs := make([]float64, 0)
+			for _, k := range keys {
+				if !isBetween(k, this.lowBoundary, this.highBoundary) {
+					singleDiffs = append(singleDiffs, k)
 				}
-				//check if key does not equal boundaries, if that is the case then they both include and no difference
-				prevKey = k
 			}
-			sets := make([]Set, 0)
-			for _, rs := range rangeDifferences {
-				sets = append(sets, Set(rs))
-			}
-			sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-			return Result{sets}, nil
+			return Result{[]Set{
+				NewFromSlice(singleDiffs),
+			}}, nil
 		}
 	case RangeSet:
 		rs := s.(RangeSet)

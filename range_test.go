@@ -12,12 +12,7 @@ func rangeSets() (RangeSet, RangeSet, RangeSet) {
 	return mInf, pInf, inf
 }
 
-func fail(msg string, t *testing.T) {
-	t.Log(msg)
-	t.Fail()
-}
-
-func TestUnionRangeSet(t *testing.T) {
+func TestRangeSetUnionRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(-15)
 	high := float64(123)
@@ -36,7 +31,7 @@ func TestUnionRangeSet(t *testing.T) {
 	}
 }
 
-func TestUnionInfiniteSet(t *testing.T) {
+func TestRangeSetUnionInfiniteSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	is := NewInfiniteSet()
 	result := mInf.Union(is)
@@ -53,7 +48,7 @@ func TestUnionInfiniteSet(t *testing.T) {
 	}
 }
 
-func TestUnionFiniteSet(t *testing.T) {
+func TestRangeSetUnionFiniteSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	vals := []float64{
 		-234234, -1, 8923942, 98234, 1231312, 4234,
@@ -77,7 +72,7 @@ func TestUnionFiniteSet(t *testing.T) {
 
 }
 
-func TestDifferenceRangeSet(t *testing.T) {
+func TestRangeSetDifferenceRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(-1325)
 	high := float64(123)
@@ -96,7 +91,7 @@ func TestDifferenceRangeSet(t *testing.T) {
 	}
 }
 
-func TestDifferenceFiniteSet(t *testing.T) {
+func TestRangeSetDifferenceFiniteSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	fs := NewFromSlice([]float64{
 		-500000,
@@ -119,7 +114,7 @@ func TestDifferenceFiniteSet(t *testing.T) {
 	}
 }
 
-func TestIntersectionRangeSet(t *testing.T) {
+func TestRangeSetIntersectionRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(-1325)
 	high := float64(123)
@@ -138,7 +133,7 @@ func TestIntersectionRangeSet(t *testing.T) {
 	}
 }
 
-func TestIntersectionFiniteSet(t *testing.T) {
+func TestRangeSetIntersectionFiniteSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	fs := NewFromSlice([]float64{
 		math.Inf(-1),
@@ -160,7 +155,7 @@ func TestIntersectionFiniteSet(t *testing.T) {
 	}
 }
 
-func TestComplementRangeSet(t *testing.T) {
+func TestRangeSetComplementRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(100)
 	high := float64(1000)
@@ -181,5 +176,24 @@ func TestComplementRangeSet(t *testing.T) {
 	result, err = mInf.Complement(regular)
 	if err == nil {
 		fail("expected error on wrong universal set", t)
+	}
+}
+
+func TestRangeSetComplementFiniteSet(t *testing.T) {
+
+	rs := RangeSet{2, 4}
+	rsError := RangeSet{0, 9}
+	fs := NewFromSlice([]float64{
+		1, 2, 3, 4, 5, 6, 7, 8, 9,
+	})
+
+	result, err := rs.Complement(fs)
+	t.Log(result)
+	if !result.Contains(1) || !result.Contains(5) || !result.Contains(9) {
+		fail("Does not include the complement elements when RangeSet complements Finite universal set", t)
+	}
+	_, err = rsError.Complement(fs)
+	if err == nil {
+		fail("should throw error when set contains elements not inside universal set", t)
 	}
 }
