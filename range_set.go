@@ -2,7 +2,6 @@ package assignment3
 
 import (
 	"errors"
-	"math"
 	"sort"
 )
 
@@ -257,14 +256,14 @@ func (this RangeSet) Difference(s Set) CompositeSet {
 		}
 	default:
 		sets := make([]Set, 0)
-		if this.lowBoundary == math.Inf(-1) && this.highBoundary == math.Inf(1) {
+		if this.lowBoundary == nInf() && this.highBoundary == inf() {
 			return CompositeSet{}
 		}
-		if this.lowBoundary != math.Inf(-1) {
-			sets = append(sets, RangeSet{math.Inf(-1), this.lowBoundary - 1})
+		if this.lowBoundary != nInf() {
+			sets = append(sets, RangeSet{nInf(), this.lowBoundary - 1})
 		}
-		if this.highBoundary != math.Inf(1) {
-			sets = append(sets, RangeSet{this.highBoundary + 1, math.Inf(1)})
+		if this.highBoundary != inf() {
+			sets = append(sets, RangeSet{this.highBoundary + 1, inf()})
 		}
 		return CompositeSet{sets}
 	}

@@ -2,7 +2,6 @@ package assignment3
 
 import (
 	"errors"
-	"math"
 )
 
 type infiniteSet struct {
@@ -11,7 +10,7 @@ type infiniteSet struct {
 }
 
 func NewInfiniteSet() infiniteSet {
-	return infiniteSet{min: math.Inf(-1), max: math.Inf(1)}
+	return infiniteSet{min: nInf(), max: inf()}
 }
 
 func (this infiniteSet) Union(s Set) CompositeSet {
@@ -35,14 +34,14 @@ func (this infiniteSet) Difference(s Set) CompositeSet {
 	case RangeSet:
 		rs := s.(RangeSet)
 		sets := make([]Set, 0)
-		if rs.lowBoundary == math.Inf(-1) && rs.highBoundary == math.Inf(1) {
+		if rs.lowBoundary == nInf() && rs.highBoundary == inf() {
 			return CompositeSet{}
 		} else {
-			if rs.lowBoundary != math.Inf(-1) {
-				sets = append(sets, RangeSet{math.Inf(-1), rs.lowBoundary - 1})
+			if rs.lowBoundary != nInf() {
+				sets = append(sets, RangeSet{nInf(), rs.lowBoundary - 1})
 			}
-			if rs.highBoundary != math.Inf(1) {
-				sets = append(sets, RangeSet{rs.highBoundary + 1, math.Inf(1)})
+			if rs.highBoundary != inf() {
+				sets = append(sets, RangeSet{rs.highBoundary + 1, inf()})
 			}
 			return CompositeSet{sets}
 		}
@@ -57,7 +56,7 @@ func (this infiniteSet) Complement(s Set) (CompositeSet, error) {
 		return CompositeSet{}, errors.New("the universal set does not include element")
 	case RangeSet:
 		rs := s.(RangeSet)
-		if rs.lowBoundary == math.Inf(-1) && rs.highBoundary == math.Inf(1) {
+		if rs.lowBoundary == nInf() && rs.highBoundary == inf() {
 			return CompositeSet{}, nil
 		} else {
 			return CompositeSet{}, errors.New("the universal set does not include element")

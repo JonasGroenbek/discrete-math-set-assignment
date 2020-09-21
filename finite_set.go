@@ -2,7 +2,6 @@ package assignment3
 
 import (
 	"errors"
-	"math"
 	"reflect"
 	"sort"
 )
@@ -145,7 +144,7 @@ func (this FiniteSet) Difference(s Set) CompositeSet {
 				if i == 0 {
 					rangeDifferences = append(rangeDifferences, RangeSet{rs.lowBoundary, k - 1})
 				} else {
-					//check if the previous key is 1 apart
+					//revious key and k is 1 apart
 					if prevKey != k-1 {
 						//check if there is a gap of 1 between previous key
 						if prevKey == k-2 {
@@ -182,8 +181,8 @@ func (this FiniteSet) Difference(s Set) CompositeSet {
 		var prevKey float64
 		for i, k := range keys {
 			//no previous key
-			if i == 0 && k != math.Inf(-1) {
-				rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
+			if i == 0 && k != nInf() {
+				rangeDifferences = append(rangeDifferences, RangeSet{nInf(), k - 1})
 			} else {
 				//check if the previous key is 1 apart
 				if prevKey != k-1 {
@@ -248,8 +247,8 @@ func (this FiniteSet) Complement(s Set) (CompositeSet, error) {
 			var prevKey float64
 			for i, k := range keys {
 				//no previous key
-				if i == 0 && k != math.Inf(-1) {
-					rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
+				if i == 0 && k != nInf() {
+					rangeDifferences = append(rangeDifferences, RangeSet{nInf(), k - 1})
 				} else {
 					//check if the previous key is 1 apart
 					if prevKey != k-1 {
@@ -285,8 +284,8 @@ func (this FiniteSet) Complement(s Set) (CompositeSet, error) {
 		var prevKey float64
 		for i, k := range keys {
 			//no previous key
-			if i == 0 && k != math.Inf(-1) {
-				rangeDifferences = append(rangeDifferences, RangeSet{math.Inf(-1), k - 1})
+			if i == 0 && k != nInf() {
+				rangeDifferences = append(rangeDifferences, RangeSet{nInf(), k - 1})
 			} else {
 				//check if the previous key is 1 apart
 				if prevKey != k-1 {
@@ -329,12 +328,4 @@ func (this FiniteSet) Remove(k float64) bool {
 	}
 	delete(this.set, k)
 	return true
-}
-
-func isBetween(target, lowBoundary, highBoundary float64) bool {
-	return target >= lowBoundary && target <= highBoundary
-}
-
-func isBetweenExcluding(target, lowBoundary, highBoundary float64) bool {
-	return target > lowBoundary && target < highBoundary
 }
