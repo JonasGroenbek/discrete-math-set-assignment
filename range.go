@@ -148,8 +148,8 @@ func (this RangeSet) Difference(s Set) Result {
 	case FiniteSet:
 		fs := s.(FiniteSet)
 		//creating range differences and specific differences
-		rangeDifferences := make([]RangeSet, 0)
-		finiteDifferences := make([]float64, 0)
+		rangeDiffs := make([]RangeSet, 0)
+		singleDiffs := make([]float64, 0)
 
 		//sorting by finite keys
 		keys := make([]float64, 0)
@@ -161,33 +161,45 @@ func (this RangeSet) Difference(s Set) Result {
 
 		var prevKey float64
 		for i, k := range keys {
-			if isBetweenExcluding(k, this.lowBoundary, this.highBoundary) {
+			if isBetween(k, this.lowBoundary, this.highBoundary) {
 				//no previous key
 				if i == 0 {
-					rangeDifferences = append(rangeDifferences, RangeSet{this.lowBoundary, k - 1})
+					rangeDiffs = append(rangeDiffs, RangeSet{this.lowBoundary, k - 1})
 				} else {
 					//check if the previous key is 1 apart
 					if prevKey != k-1 {
 						//check if there is a gap of 1 between previous key
 						if prevKey == k-2 {
-							finiteDifferences = append(finiteDifferences, k-1)
+							singleDiffs = append(singleDiffs, k-1)
 							//append range since gap is larger than 2
 						} else {
-							rangeDifferences = append(rangeDifferences, RangeSet{prevKey + 1, k - 1})
+							if prevKey >= this.lowBoundary {
+								rangeDiffs = append(rangeDiffs, RangeSet{prevKey + 1, k - 1})
+							} else {
+								rangeDiffs = append(rangeDiffs, RangeSet{this.lowBoundary, k - 1})
+							}
 						}
 					}
 				}
 				//check if key does not equal boundaries, if that is the case then they both include and no difference
-			} else if k != this.lowBoundary && k != this.highBoundary {
-				finiteDifferences = append(finiteDifferences, k)
+			} else if k > this.highBoundary {
+				singleDiffs = append(singleDiffs, k)
+				if this.highBoundary > prevKey {
+					rangeDiffs = append(rangeDiffs, RangeSet{prevKey + 1, this.highBoundary})
+				}
+			} else if k < this.lowBoundary {
+				singleDiffs = append(singleDiffs, k)
 			}
 			prevKey = k
 		}
+		if prevKey < this.highBoundary {
+			rangeDiffs = append(rangeDiffs, RangeSet{prevKey + 1, this.highBoundary})
+		}
 		sets := make([]Set, 0)
-		for _, rs := range rangeDifferences {
+		for _, rs := range rangeDiffs {
 			sets = append(sets, Set(rs))
 		}
-		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
+		sets = append(sets, Set(NewFromSlice(singleDiffs)))
 		return Result{sets}
 	case RangeSet:
 		rs := s.(RangeSet)

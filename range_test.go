@@ -96,6 +96,29 @@ func TestDifferenceRangeSet(t *testing.T) {
 	}
 }
 
+func TestDifferenceFiniteSet(t *testing.T) {
+	mInf, pInf, inf := rangeSets()
+	fs := NewFromSlice([]float64{
+		-500000,
+		500000,
+	})
+
+	result := mInf.Difference(fs)
+	if !result.Contains(math.Inf(-1)) || !result.Contains(500000) {
+		fail("Result does not contain difference elements when diff between minus inf RangeSet and FiniteSet", t)
+	}
+
+	result = pInf.Difference(fs)
+	t.Log(result)
+	if result.Contains(math.Inf(-500000)) || !result.Contains(math.Inf(1)) {
+		fail("Result does not contain difference elements when diff between plus inf RangeSet and FiniteSet", t)
+	}
+	result = inf.Difference(fs)
+	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(1)) {
+		fail("Result does notcontain difference elements when diff between inf RangeSet and FiniteSet", t)
+	}
+}
+
 func TestIntersectionRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(-1325)
