@@ -49,7 +49,6 @@ func (this RangeSet) Union(s Set) Result {
 }
 
 func (this RangeSet) Intersection(s Set) Result {
-	var res Result
 	switch s.(type) {
 	case FiniteSet:
 		fs := s.(FiniteSet)
@@ -69,7 +68,7 @@ func (this RangeSet) Intersection(s Set) Result {
 				}
 			}
 		}
-		res = Result{[]Set{
+		return Result{[]Set{
 			intersections,
 		}}
 	case RangeSet:
@@ -77,7 +76,7 @@ func (this RangeSet) Intersection(s Set) Result {
 		var low float64
 		var high float64
 		//rs contains
-		if rs.lowBoundary <= this.lowBoundary && rs.highBoundary >= this.lowBoundary {
+		if rs.lowBoundary <= this.lowBoundary && rs.highBoundary >= this.highBoundary {
 			low = this.lowBoundary
 			high = this.highBoundary
 			//this contains
@@ -104,17 +103,17 @@ func (this RangeSet) Intersection(s Set) Result {
 					low = rs.lowBoundary
 					high = this.highBoundary
 				}
+				//this lowest
+			} else if this.lowBoundary < rs.lowBoundary {
+				low = rs.lowBoundary
+				high = this.highBoundary
+				//rs lowest
+			} else if rs.lowBoundary < this.lowBoundary {
+				low = this.lowBoundary
+				high = rs.highBoundary
+			} else {
+				return Result{}
 			}
-			//this lowest
-		} else if this.lowBoundary < rs.lowBoundary {
-			low = rs.lowBoundary
-			high = this.highBoundary
-			//rs lowest
-		} else if rs.lowBoundary < this.lowBoundary {
-			low = this.lowBoundary
-			high = rs.highBoundary
-		} else {
-			return Result{}
 		}
 		return Result{
 			[]Set{
@@ -124,14 +123,13 @@ func (this RangeSet) Intersection(s Set) Result {
 				},
 			},
 		}
-	case infiniteSet:
-		res = Result{
+	default:
+		return Result{
 			[]Set{
 				NewInfiniteSet(),
 			},
 		}
 	}
-	return res
 }
 
 func (this RangeSet) Difference(s Set) Result {

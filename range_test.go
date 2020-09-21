@@ -96,11 +96,27 @@ func TestDifferenceRangeSet(t *testing.T) {
 	}
 }
 
-/*
 func TestIntersection(t *testing.T) {
-	minusInf, regular, inf := testData()
-	assert.Equal(t, "", "", "The two words should be the same.")
+	mInf, pInf, inf := rangeSets()
+	low := float64(-1325)
+	high := float64(123)
+	regular := RangeSet{low, high}
+	result := mInf.Intersection(regular)
+	if result.Contains(math.Inf(-1)) {
+		fail("Result does not exclude -infinity on difference", t)
+	}
+	result = pInf.Intersection(regular)
+	t.Log(result)
+	if !result.Contains(high) || result.Contains(math.Inf(1)) {
+		fail("failed on intersection on regular and positive infinite rangesets", t)
+	}
+	result = inf.Intersection(regular)
+	if result.Contains(math.Inf(-1)) || result.Contains(math.Inf(1)) {
+		fail("failed on intersection on regular and infinite rangesets", t)
+	}
 }
+
+/*
 func TestComplement(t *testing.T) {
 	minusInf, regular, inf := testData()
 	assert.Equal(t, "", "", "The two words should be the same.")
