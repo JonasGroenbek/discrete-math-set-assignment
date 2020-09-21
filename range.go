@@ -15,15 +15,14 @@ func (this RangeSet) Union(s Set) Result {
 	switch s.(type) {
 	case FiniteSet:
 		fs := s.(FiniteSet)
-		rs := s.(RangeSet)
-		for k := range fs.set {
-			if _, ok := fs.set[k]; ok {
+		for k, _ := range fs.set {
+			if isBetween(k, this.lowBoundary, this.highBoundary) {
 				delete(fs.set, k)
 			}
 		}
 		return Result{[]Set{
 			fs,
-			rs,
+			this,
 		}}
 	case RangeSet:
 		rs := s.(RangeSet)
@@ -136,7 +135,6 @@ func (this RangeSet) Intersection(s Set) Result {
 }
 
 func (this RangeSet) Difference(s Set) Result {
-	var res Result
 	switch s.(type) {
 	case FiniteSet:
 		fs := s.(FiniteSet)
@@ -181,24 +179,73 @@ func (this RangeSet) Difference(s Set) Result {
 			sets = append(sets, Set(rs))
 		}
 		sets = append(sets, Set(NewFromSlice(finiteDifferences)))
-		res = Result{sets}
+		return Result{sets}
 	case RangeSet:
-
-	case infiniteSet:
+		rs := s.(RangeSet)
+		//rs contains
+		if rs.lowBoundary <= this.lowBoundary && rs.highBoundary >= this.highBoundary {
+			return Result{[]Set{
+				RangeSet{this.lowBoundary, rs.lowBoundary},
+				RangeSet{this.highBoundary, rs.highBoundary},
+			}}
+			//this contains
+		} else if this.lowBoundary <= rs.lowBoundary && this.highBoundary >= rs.highBoundary {
+			return Result{[]Set{
+				RangeSet{rs.lowBoundary, this.lowBoundary},
+				RangeSet{rs.highBoundary, this.highBoundary},
+			}}
+			//they cross
+		} else if isBetween(this.lowBoundary, rs.lowBoundary, rs.highBoundary) || isBetween(this.highBoundary, rs.lowBoundary, rs.highBoundary) {
+			//equal low
+			if this.lowBoundary == rs.lowBoundary {
+				if this.highBoundary <= rs.highBoundary {
+					return Result{[]Set{
+						RangeSet{this.highBoundary, rs.highBoundary},
+					}}
+				} else {
+					return Result{[]Set{
+						RangeSet{rs.highBoundary, rs.highBoundary},
+					}}
+				}
+				//equal high
+			} else if this.highBoundary == rs.highBoundary {
+				if this.lowBoundary <= rs.lowBoundary {
+					return Result{[]Set{
+						RangeSet{this.lowBoundary, rs.lowBoundary},
+					}}
+				} else {
+					return Result{[]Set{
+						RangeSet{rs.lowBoundary, this.lowBoundary},
+					}}
+				}
+				//this lowest
+			} else if this.lowBoundary < rs.lowBoundary {
+				return Result{[]Set{
+					RangeSet{rs.lowBoundary, this.highBoundary},
+				}}
+				//rs lowest
+			} else if rs.lowBoundary < this.lowBoundary {
+				return Result{[]Set{
+					RangeSet{this.lowBoundary, rs.highBoundary},
+				}}
+			} else {
+				return Result{}
+			}
+		}
+	default:
 		sets := make([]Set, 0)
 		if this.lowBoundary == math.Inf(-1) && this.highBoundary == math.Inf(1) {
-			res = Result{}
-		} else {
-			if this.lowBoundary != math.Inf(-1) {
-				sets = append(sets, RangeSet{math.Inf(-1), this.lowBoundary - 1})
-			}
-			if this.highBoundary != math.Inf(1) {
-				sets = append(sets, RangeSet{this.highBoundary + 1, math.Inf(1)})
-			}
-			res = Result{sets}
+			return Result{}
 		}
+		if this.lowBoundary != math.Inf(-1) {
+			sets = append(sets, RangeSet{math.Inf(-1), this.lowBoundary - 1})
+		}
+		if this.highBoundary != math.Inf(1) {
+			sets = append(sets, RangeSet{this.highBoundary + 1, math.Inf(1)})
+		}
+		return Result{sets}
 	}
-	return res
+	return Result{}
 }
 
 func (this RangeSet) Complement(s Set) (Result, error) {

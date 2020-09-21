@@ -7,7 +7,6 @@ import (
 	"sort"
 )
 
-//FiniteSet something
 type (
 	FiniteSet struct {
 		set map[float64]nothing
