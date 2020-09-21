@@ -29,14 +29,35 @@ func (this FiniteSet) Union(s Set) Result {
 		}}
 	case RangeSet:
 		rs := s.(RangeSet)
+
+		keys := make([]float64, 0)
 		for k := range this.set {
-			if isBetween(k, rs.lowBoundary, rs.highBoundary) {
-				delete(this.set, k)
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+
+		var high float64
+		var low float64
+		for i, k := range keys {
+			if i == 0 {
+				high = k
+				low = k
+			}
+			if k > high {
+				high = k
+			}
+			if k < low {
+				low = k
 			}
 		}
+		if rs.highBoundary > high {
+			high = rs.highBoundary
+		}
+		if rs.lowBoundary < low {
+			low = rs.lowBoundary
+		}
 		return Result{[]Set{
-			this,
-			rs,
+			RangeSet{low, high},
 		}}
 	default:
 		is := s.(infiniteSet)

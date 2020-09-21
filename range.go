@@ -52,24 +52,35 @@ func (this RangeSet) Intersection(s Set) Result {
 	switch s.(type) {
 	case FiniteSet:
 		fs := s.(FiniteSet)
-		thisLength := int(this.highBoundary - this.lowBoundary)
-		fsLength := len(fs.set)
-		intersections := FiniteSet{}
-		if fsLength >= thisLength {
-			for i := this.lowBoundary; i < this.highBoundary; i++ {
-				if _, ok := fs.set[i]; ok {
-					intersections.Add(i)
-				}
+
+		keys := make([]float64, 0)
+		for k := range fs.set {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+
+		var high float64
+		var low float64
+		for i, k := range keys {
+			if i == 0 {
+				high = k
+				low = k
 			}
-		} else {
-			for k, _ := range fs.set {
-				if isBetween(k, this.lowBoundary, this.highBoundary) {
-					intersections.Add(k)
-				}
+			if k > high {
+				high = k
+			}
+			if k < low {
+				low = k
 			}
 		}
+		if this.highBoundary > high {
+			high = this.highBoundary
+		}
+		if this.lowBoundary < low {
+			low = this.lowBoundary
+		}
 		return Result{[]Set{
-			intersections,
+			RangeSet{low, high},
 		}}
 	case RangeSet:
 		rs := s.(RangeSet)

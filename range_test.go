@@ -106,7 +106,6 @@ func TestIntersectionRangeSet(t *testing.T) {
 		fail("Result does not exclude -infinity on difference", t)
 	}
 	result = pInf.Intersection(regular)
-	t.Log(result)
 	if !result.Contains(high) || result.Contains(math.Inf(1)) {
 		fail("failed on intersection on regular and positive infinite rangesets", t)
 	}
@@ -116,7 +115,29 @@ func TestIntersectionRangeSet(t *testing.T) {
 	}
 }
 
-func TestComplement(t *testing.T) {
+func TestIntersectionFiniteSet(t *testing.T) {
+	mInf, pInf, inf := rangeSets()
+	fs := NewFromSlice([]float64{
+		math.Inf(-1),
+		-500000,
+		500000,
+		math.Inf(1),
+	})
+	result := mInf.Intersection(fs)
+	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(-500000)) || !result.Contains(500000) || !result.Contains(math.Inf(1)) {
+		fail("Result does not exclude FiniteSet elements", t)
+	}
+	result = pInf.Intersection(fs)
+	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(-500000)) || !result.Contains(500000) || !result.Contains(math.Inf(1)) {
+		fail("Result does not exclude FiniteSet elements when intersecting with ", t)
+	}
+	result = inf.Intersection(fs)
+	if !result.Contains(math.Inf(-1)) || !result.Contains(math.Inf(-500000)) || !result.Contains(500000) || !result.Contains(math.Inf(1)) {
+		fail("Result does not exclude FiniteSet elements", t)
+	}
+}
+
+func TestComplementRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(100)
 	high := float64(1000)
@@ -126,12 +147,10 @@ func TestComplement(t *testing.T) {
 		fail("Complement include element from original set", t)
 	}
 	result, err = pInf.Complement(inf)
-	t.Log(result)
 	if result.Contains(0) || result.Contains(math.Inf(1)) || err != nil {
 		fail("Complement include its original elements", t)
 	}
 	result, err = regular.Complement(inf)
-	t.Log(result)
 	if result.Contains(500) || !result.Contains(1001) || !result.Contains(99) || err != nil {
 		fail("failed on complement on regular and infinite rangesets", t)
 	}
