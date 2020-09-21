@@ -96,7 +96,7 @@ func TestDifferenceRangeSet(t *testing.T) {
 	}
 }
 
-func TestIntersection(t *testing.T) {
+func TestIntersectionRangeSet(t *testing.T) {
 	mInf, pInf, inf := rangeSets()
 	low := float64(-1325)
 	high := float64(123)
@@ -116,9 +116,28 @@ func TestIntersection(t *testing.T) {
 	}
 }
 
-/*
 func TestComplement(t *testing.T) {
-	minusInf, regular, inf := testData()
-	assert.Equal(t, "", "", "The two words should be the same.")
+	mInf, pInf, inf := rangeSets()
+	low := float64(100)
+	high := float64(1000)
+	regular := RangeSet{low, high}
+	result, err := mInf.Complement(inf)
+	if result.Contains(math.Inf(-1)) || err != nil {
+		fail("Complement include element from original set", t)
+	}
+	result, err = pInf.Complement(inf)
+	t.Log(result)
+	if result.Contains(0) || result.Contains(math.Inf(1)) || err != nil {
+		fail("Complement include its original elements", t)
+	}
+	result, err = regular.Complement(inf)
+	t.Log(result)
+	if result.Contains(500) || !result.Contains(1001) || !result.Contains(99) || err != nil {
+		fail("failed on complement on regular and infinite rangesets", t)
+	}
+
+	result, err = mInf.Complement(regular)
+	if err == nil {
+		fail("expected error on wrong universal set", t)
+	}
 }
-*/

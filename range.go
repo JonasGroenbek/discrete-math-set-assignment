@@ -296,24 +296,11 @@ func (this RangeSet) Complement(s Set) (Result, error) {
 			return Result{}, errors.New("the universal set does not include element")
 		} else {
 			sets := make([]Set, 0)
-			var low float64
-			var high float64
-			if rs.lowBoundary >= this.highBoundary {
-				high = rs.highBoundary
-			} else {
-				high = this.highBoundary
+			if this.highBoundary != rs.highBoundary {
+				sets = append(sets, RangeSet{this.highBoundary + 1, rs.highBoundary})
 			}
-
-			if rs.lowBoundary >= this.lowBoundary {
-				low = this.lowBoundary
-			} else {
-				low = rs.lowBoundary
-			}
-			if high != math.Inf(1) {
-				sets = append(sets, RangeSet{high, math.Inf(1)})
-			}
-			if low != math.Inf(-1) {
-				sets = append(sets, RangeSet{math.Inf(-1), low})
+			if this.lowBoundary != rs.lowBoundary {
+				sets = append(sets, RangeSet{rs.lowBoundary, this.lowBoundary - 1})
 			}
 			return Result{sets}, nil
 		}
