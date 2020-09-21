@@ -1,4 +1,4 @@
-package main
+package assignment3
 
 //Set to be implemented by all sets
 type Set interface {

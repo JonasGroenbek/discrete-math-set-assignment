@@ -1,4 +1,4 @@
-package main
+package assignment3
 
 type Result struct {
 	sets []Set
